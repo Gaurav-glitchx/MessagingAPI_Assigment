@@ -1,0 +1,47 @@
+{
+  "name": "task1",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node dist/server.js",
+    "dev": "ts-node src/server.ts",
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/express-rate-limit": "^6.0.2",
+    "@types/hapi__hapi": "^20.0.13",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/mongoose": "^5.11.96",
+    "@types/node": "^22.14.1",
+    "@types/redis": "^4.0.10",
+    "@types/winston": "^2.4.4",
+    "hapi-rate-limit": "^7.1.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@hapi/hapi": "^21.4.0",
+    "@hapi/inert": "^7.1.0",
+    "@hapi/vision": "^7.0.3",
+    "@types/joi": "^17.2.2",
+    "@types/nodemailer": "^6.4.17",
+    "bcrypt": "^5.1.1",
+    "dotenv": "^16.5.0",
+    "express-rate-limit": "^6.11.2",
+    "hapi-swagger": "^17.3.2",
+    "joi": "^17.13.3",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.13.2",
+    "nodemailer": "^6.10.1",
+    "rate-limit-redis": "^3.1.0",
+    "redis": "^4.7.0",
+    "winston": "^3.17.0"
+  }
+}

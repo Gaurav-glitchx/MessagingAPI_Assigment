@@ -1,0 +1,1 @@
+{"address":"127.0.0.1","code":"ESOCKET","command":"CONN","errno":-111,"level":"error","message":"Send email failed: connect ECONNREFUSED 127.0.0.1:587","port":587,"stack":"Error: connect ECONNREFUSED 127.0.0.1:587\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"2025-04-18T13:43:23.772Z"}
