@@ -1,71 +1,58 @@
-// import { Plugin, Request, ResponseToolkit, Server } from '@hapi/hapi';
-// import rateLimit from 'hapi-rate-limit';
+import { Plugin, Request, ResponseToolkit, Server } from '@hapi/hapi';
 
-// // Type definition for rate limit options
-// interface RateLimitOptions {
-//   enabled: boolean;
-//   userLimit: number;
-//   userCache: {
-//     expiresIn: number;
-//   };
-//   pathLimit: boolean;
-//   headers: boolean;
-//   getUserKey: (request: Request) => string;
-//   onError: (request: Request, h: ResponseToolkit, error: Error) => any;
-// }
+const RATE_LIMIT = {
+  MAX_REQUESTS: 5,
+  WINDOW_MS: 60 * 1000
+};
 
-// const rateLimitPlugin: Plugin<RateLimitOptions> = {
-//   name: 'rateLimit',
-//   register: async (server: Server) => {
-//     await server.register({
-//       plugin: rateLimit,
-//       options: {
-//         enabled: true,
-//         userLimit: 5, // 5 requests per minute per user
-//         userCache: {
-//           expiresIn: 60 * 1000 // 1 minute window
-//         },
-//         pathLimit: false, // Disable path-based limiting
-//         headers: true, // Show X-RateLimit-* headers
-//         trustProxy: true, // For reverse proxy setups
-        
-//         // Get user ID from JWT credentials
-//         getUserKey: (request: Request) => {
-//           const credentials = request.auth.credentials as { userId: string };
-//           return credentials.userId;
-//         },
+const requestStore = new Map<string, { count: number, resetTime: number }>();
 
-//         // Custom error handler
-//         onError: (request: Request, h: ResponseToolkit) => {
-//           return h.response({
-//             statusCode: 429,
-//             error: 'Too Many Requests',
-//             message: 'Message limit exceeded: 5 messages per minute'
-//           }).code(429);
-//         },
+export const rateLimitPlugin: Plugin<void> = {
+  name: 'rateLimit',
+  version: '1.0.0',
+  register: async (server: Server) => {
+    // Cleanup interval
+    const cleanupInterval = setInterval(() => {
+      const now = Date.now();
+      requestStore.forEach((value, key) => {
+        if (value.resetTime < now) requestStore.delete(key);
+      });
+    }, RATE_LIMIT.WINDOW_MS);
 
-//         // (Optional) Add paths to ignore
-//         pathFilter: (request: Request) => {
-//           // Exclude documentation routes from rate limiting
-//           return !request.path.startsWith('/documentation');
-//         }
-//       } as RateLimitOptions
-//     });
+    server.events.on('stop', () => clearInterval(cleanupInterval));
 
-//     // Apply rate limiting to specific routes
-//     server.route({
-//       method: 'POST',
-//       path: '/messages',
-//       handler: () => {}, // Actual handler in messages controller
-//       options: {
-//         plugins: {
-//           'hapi-rate-limit': {
-//             enabled: true
-//           }
-//         }
-//       }
-//     });
-//   }
-// };
+    // Rate limiting logic
+    server.ext('onPreHandler', (request, h) => {  // Changed from onPreAuth to onPreHandler
+      // Only apply to POST /messages
+      if (request.path !== '/messages' || request.method.toLowerCase() !== 'post') {
+        return h.continue;
+      }
 
-// export default rateLimitPlugin;
+      // Get identifier (using IP address for simplicity)
+      const identifier = request.info.remoteAddress;
+
+      // Get or create rate limit entry
+      const now = Date.now();
+      let entry = requestStore.get(identifier);
+      
+      if (!entry || entry.resetTime < now) {
+        entry = { count: 0, resetTime: now + RATE_LIMIT.WINDOW_MS };
+        requestStore.set(identifier, entry);
+      }
+
+      // Check limit
+      if (entry.count >= RATE_LIMIT.MAX_REQUESTS) {
+        return h.response({
+          statusCode: 429,
+          error: 'Too Many Requests',
+          message: `Rate limit exceeded. Try again in ${Math.ceil((entry.resetTime - now)/1000)} seconds`
+        }).code(429).takeover();  // Added .takeover()
+      }
+
+      // Increment count
+      entry.count++;
+      
+      return h.continue;
+    });
+  }
+};

@@ -61,7 +61,8 @@ export const sendContactRequest = async (request: Request, h: ResponseToolkit) =
       recipient: recipientId,
       status: ContactStatus.PENDING
     });
-await newContact.save();
+    await newContact.save();
+    
     await MailService.sendContactRequestEmail(
       recipient.email,
       (await User.findById(userId))?.name || 'A user'

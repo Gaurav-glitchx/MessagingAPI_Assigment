@@ -2,6 +2,7 @@ import Joi from 'joi';
 import { ServerRoute,Server } from '@hapi/hapi';
 import { sendMessage, getMessages } from '../controllers/messages';
 import { messageSchema } from '../utils/validator';
+import { rateLimitPlugin } from '../middlewares/rateLimit';
 
 const messageRoutes: ServerRoute[] = [
   {
@@ -16,6 +17,7 @@ const messageRoutes: ServerRoute[] = [
         }
       }
     }
+  
   },
   {
     method: 'GET',

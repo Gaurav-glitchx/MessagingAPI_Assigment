@@ -1,13 +1,13 @@
 import Hapi from '@hapi/hapi';
 import mongoose from 'mongoose';
 import { authMiddleware } from './middlewares/auth';
-// import rateLimitPlugin from './middlewares/rateLimit';
 import { configureAuthRoutes } from './routes/auth';
 import { configureContactRoutes } from './routes/contacts';
 import { configureMessageRoutes } from './routes/messages';
 import { configureUserRoutes } from './routes/users';
 import { logger } from './utils/logger';
 import dotenv from 'dotenv';
+import { rateLimitPlugin   } from './middlewares/rateLimit';
 
 dotenv.config({ path: __dirname + '/../.env' });
 
@@ -44,8 +44,7 @@ export const init = async () => {
   }
 
   // Register plugins and middlewares
-  // await server.register([authMiddleware,rateLimitPlugin]);
-  await server.register([authMiddleware]);
+  await server.register([authMiddleware,rateLimitPlugin]);
 
   // Configure routes
   configureAuthRoutes(server);
